@@ -25,7 +25,7 @@ export default class clsLog {
 
     static async create(msg, type = 'ALERT') {
 
-        try 
+        try
         {
 
             // Cria a pasta de log's caso não exista.
@@ -33,15 +33,15 @@ export default class clsLog {
                 fs.mkdirSync('./logs');
             }
 
-            await fs.appendFileSync(resolve('logs', this.getFileName()), 
+            await fs.appendFileSync(resolve('logs', this.getFileName()),
                 `${this.getFullMoment()} - ${type} - ${msg}\n`,
-                { 
-                    encoding: "utf8", 
-                    flag: "a" 
+                {
+                    encoding: "utf8",
+                    flag: "a"
                 });
 
         }
-        catch (ex) 
+        catch (ex)
         {
 
             console.log('ERROR: ' + ex.message);
@@ -52,13 +52,13 @@ export default class clsLog {
 
     static async clear() {
 
-        try 
+        try
         {
 
             await fs.unlinkSync(resolve('logs', this.getFileName()));
 
         }
-        catch (ex) 
+        catch (ex)
         {
 
             console.log('ERROR: ' + ex.message);

@@ -2,7 +2,9 @@ import express      from 'express';
 import contactModel from '../models/contacts.js';
 import phoneModel   from '../models/phone.js';
 import dbConnection from '../factory/db-connection.js';
-
+import Navegator    from '../features/navegator.js';
+import ClsLog       from '../factory/clsLog.js';
+import { TypeLogs } from '../factory/clsLog.js';
 
 const app = express.Router();
 
@@ -19,6 +21,27 @@ app.post('/register', async(req, res) => {
 
     let data = req.body;
     let numbers = JSON.parse(req.body.phones);
+
+    if(!data.name)
+    {
+        res.json({
+            success: false,
+            message: 'O campo nome precisa ser preenchido!'
+        });
+        return;
+    }
+
+    for(let i = 0; i < numbers.length; i++) {
+
+        if(!numbers[i]) {
+            res.json({
+                success: false,
+                message: 'Existe(m) campo(s) de telefone que precisa(m) ser(em) preenchido(s)!'
+            });
+            return;
+        }
+
+    }
 
     const vTransaction = await dbConnection.transaction();
     const contact = await contactModel.build();
@@ -38,6 +61,10 @@ app.post('/register', async(req, res) => {
 
         for(let i = 0; i < numbers.length; i++) {
 
+            if(!numbers[i]) {
+                continue;
+            }
+
             await phoneModel.create({
                 IDCONTATO: parseInt(contact.id),
                 NUMERO: numbers[i].toString()
@@ -45,6 +72,8 @@ app.post('/register', async(req, res) => {
             {
                 transaction: vTransaction
             });
+
+            ClsLog.create(`Foi incluído um contato`, TypeLogs.Info);
 
         }
 
@@ -69,12 +98,85 @@ app.post('/register', async(req, res) => {
 });
 
 
-app.get('/list', (req, res) => {
+app.get('/list/:page?', async (req, res) => {
+
+    const limit      = 30;
+    const records    = await phoneModel.count();
+    const pageNumber = Navegator.getNumberParam(req.params.page);
+    const pages      = Navegator.getPages(records, limit);
+    const offset     = Navegator.getOffset(pageNumber, limit)
+
+    const contacts = await
+        phoneModel.findAll({
+            include: [{
+                model: contactModel,
+                required: true
+            }],
+            limit: limit,
+            offset: offset
+        });
 
     res.render('list',{
-        status: 200,
-        message: 'hello world!'
-    })
+        title: 'Lista de contatos',
+        contacts: contacts,
+        pages: pages,
+        page: pageNumber,
+        link: '/contact/list'
+    });
+
+});
+
+app.post('/delete', async(req, res) => {
+
+    const id = parseInt(req.body.id);
+
+    if(!id)
+    {
+        res.status(401);
+        res.json({
+            success: false,
+            message: '## ERROR_BAD_REQUEST ##',
+        });
+        return;
+    }
+
+    try
+    {
+
+        const phoneNumber = await phoneModel.findByPk(id);
+
+        if(!phoneNumber)
+        {
+            res.status(404);
+            res.json({
+                success: false,
+                message: '## ERROR_NOT_RECORD ##',
+            });
+            return;
+        }
+
+        await phoneNumber.destroy();
+        ClsLog.create(`Foi excluído um contato (${id})`, TypeLogs.Alert);
+
+        res.status(200);
+        res.json({
+            success: true,
+            message: 'Registro foi excluído com sucesso.',
+        });
+        return;
+
+    }
+    catch(ex)
+    {
+
+        res.status(401);
+        res.json({
+            success: false,
+            message: '## ERROR_PROCESS_OP ##',
+        });
+        return;
+
+    }
 
 });
 
