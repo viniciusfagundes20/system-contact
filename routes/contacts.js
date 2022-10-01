@@ -9,6 +9,104 @@ import { QueryTypes }   from 'sequelize';
 
 const app = express.Router();
 
+app.get('/edit/:id', async(req, res) => {
+
+    const id = parseInt(req.params.id);
+
+    if(!id)
+    {
+        res.redirect('/contact/list');
+        return;
+    }
+
+    let contact = await phoneModel.findOne({
+        include: {
+            model: contactModel,
+            required: true
+        },
+        where: {
+            id: id
+        }
+    });
+
+    if(!contact)
+    {
+        res.redirect('/contact/list');
+        return;
+    }
+
+    res.render('edit', {
+        title: 'Novo registro',
+        contact: contact
+    });
+
+});
+
+
+app.post('/edit', async(req, res) => {
+
+    let data = req.body;
+
+    if(!data.id || !data.nome || !data.telefone)
+    {
+        res.json({
+            success: false,
+            message: '## ERROR_BAD_REQUEST ##'
+        });
+        return;
+    }
+
+    const vTransaction = await dbConnection.transaction();
+
+    try
+    {
+        const phoneNumber = await phoneModel.findByPk(parseInt(data.id));
+
+        if(!phoneNumber)
+        {
+            res.status(400);
+            res.json({
+                success: false,
+                message: '## ERROR_NOT_FOUND ##'
+            });
+            return;
+        }
+
+        phoneNumber.NUMERO = data.telefone;
+
+        await phoneNumber.save({
+            transaction: vTransaction
+        });
+
+        const contact = await contactModel.findByPk(phoneNumber.IDCONTATO);
+
+        contact.NOME = data.nome;
+        contact.IDADE = parseInt(data.idade);
+
+        await contact.save({
+            transaction: vTransaction
+        });
+
+        await vTransaction.commit();
+
+        res.json({
+            success: true,
+            message: 'Registrado com sucesso!'
+        });
+
+    }
+    catch(ex)
+    {
+        vTransaction.rollback();
+        res.json({
+            success: false,
+            message: ex.message
+        })
+    }
+
+
+});
+
 app.get('/register', async(req, res) => {
 
     res.render('register', {

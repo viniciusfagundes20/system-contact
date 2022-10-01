@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title><%=title%></title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand navbar-dark bg-primary">
+            <a class="sidebar-toggle text-light mr-3">
+                <span class="navbar-toggler-icon"></span>
+            </a>
+            <a class="navbar-brand" href="/contact/list">DaVinTi</a>
+        </nav>
+
+        <div class="container">
+            <div class="content p-1">
+                <div class="d-flex">
+                    <div class="mr-auto p-2">
+                        <h4 class="display-4">Editar Contato</h4>
+                    </div>
+                    <a href="/contact/list">
+                        <div class="p-2">
+                            <button class="btn btn-outline-info btn-sm">
+                                Listar
+                            </button>
+                        </div>
+                    </a>
+                </div><hr>
+                <form id="form-main">
+                    <div class="container">
+                    <input id="input-id" type="hidden" class="d-none" value="<%=contact.id%>">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label><span class="text-danger">*</span> Nome</label>
+                            <input name="nome" type="text" class="form-control" id="nome" placeholder="Nome completo" value="<%=contact.Contato.NOME%>">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Sua idade <span class="text-primary">Não obrigatório</span></label>
+                            <input name="idade" type="number" class="form-control" id="idade" value="<%=contact.Contato.IDADE%>">
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-3">
+                        <div class="form-group col-md-6">
+                            <label><span class="text-danger">*</span> Número</label>
+                            <input name="telefone" type="tel" class="form-control" id="telefone" maxlength="16" value="<%=contact.NUMERO%>">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col">
+                            <p><span class="text-danger">* </span>Campo obrigatório</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-warning">Salvar</button>
+                </div>
+                </form>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+
+        <script>
+
+
+           $('#form-main').submit(event => {
+
+            event.preventDefault();
+
+            let id = $('#input-id').val();
+            let data = `id=${id}&`+ $(event.target).serialize();
+
+            $.ajax({
+                type: "POST",
+                url: "/contact/edit",
+                data: data,
+                dataType: "json"
+            }).done(response => {
+
+                if(response.success) {
+                    alert("Editado com sucesso");
+                    window.location.reload();
+                }
+                else
+                {
+                    alert(response.message);
+                }
+
+            }).fail(erro => {
+
+                alert("Ocorreu um erro durante a operação.");
+                window.location.reload();
+            });
+
+           });
+
+        </script>
+    </body>
+</html>
