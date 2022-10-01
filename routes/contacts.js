@@ -1,10 +1,11 @@
-import express      from 'express';
-import contactModel from '../models/contacts.js';
-import phoneModel   from '../models/phone.js';
-import dbConnection from '../factory/db-connection.js';
-import Navegator    from '../features/navegator.js';
-import ClsLog       from '../factory/clsLog.js';
-import { TypeLogs } from '../factory/clsLog.js';
+import express          from 'express';
+import contactModel     from '../models/contacts.js';
+import phoneModel       from '../models/phone.js';
+import dbConnection     from '../factory/db-connection.js';
+import Navegator        from '../features/navegator.js';
+import ClsLog           from '../factory/clsLog.js';
+import { TypeLogs }     from '../factory/clsLog.js';
+import { QueryTypes }   from 'sequelize';
 
 const app = express.Router();
 
@@ -106,7 +107,9 @@ app.get('/list/:page?', async (req, res) => {
     const pages      = Navegator.getPages(records, limit);
     const offset     = Navegator.getOffset(pageNumber, limit)
 
-    const contacts = await
+    try
+    {
+        const contacts = await
         phoneModel.findAll({
             include: [{
                 model: contactModel,
@@ -116,13 +119,70 @@ app.get('/list/:page?', async (req, res) => {
             offset: offset
         });
 
-    res.render('list',{
-        title: 'Lista de contatos',
-        contacts: contacts,
-        pages: pages,
-        page: pageNumber,
-        link: '/contact/list'
-    });
+
+        res.render('list',{
+            title: 'Lista de contatos',
+            contacts: contacts,
+            pages: pages,
+            page: pageNumber,
+            link: '/contact/list'
+        });
+
+    }
+    catch(ex)
+    {
+        res.json({
+            status: 401,
+            message: ex.message
+        });
+    }
+
+
+});
+
+app.get('/find', async(req, res) => {
+
+    const data  = req.query;
+    const limit = 30;
+
+    try
+    {
+        let contacts =
+        await dbConnection.query(`
+            SELECT
+                telefones.id,
+                telefones.NUMERO,
+                contatos.NOME,
+                telefones.createdAt
+            FROM telefones
+            INNER JOIN contatos ON
+            contatos.id = telefones.IDCONTATO
+            WHERE
+            contatos.NOME LIKE :nome
+            OR telefones.NUMERO LIKE :numero
+            LIMIT :limit
+        `, {
+            replacements: {
+                nome: `%${data.name}%`,
+                numero: `%${data.number}%`,
+                limit: limit
+            },
+            type: QueryTypes.SELECT
+          });
+
+        res.render('find',{
+            title: 'Lista de contatos',
+            contacts: contacts
+        });
+
+    }
+    catch(ex)
+    {
+        res.json({
+            status: 401,
+            message: ex.message
+        });
+    }
 
 });
 

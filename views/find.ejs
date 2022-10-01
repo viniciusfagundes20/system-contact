@@ -86,7 +86,7 @@
                         <% contacts.forEach(contact => { %>
                         <tr data-identify="<%=contact.id%>">
                             <th class="text-center"><%=contact.id%></th>
-                            <td class="d-lg-table-cell"><%=contact.Contato.NOME%></td>
+                            <td class="d-lg-table-cell"><%=contact.NOME%></td>
                             <td class="text-center"><%=contact.NUMERO%></td>
                             <td class="d-sm-table-cell"><%=contact.createdAt%></td>
                             <td class="text-center">
@@ -98,9 +98,7 @@
                         <% }) %>
                     </tbody>
                 </table>
-
-                <%- include('./body-pagination'); %>
-           </div>
+            </div>
         </div>
 
         <dialog id="window">
