@@ -68,4 +68,14 @@ app.post('/register', async(req, res) => {
 
 });
 
+
+app.get('/list', (req, res) => {
+
+    res.render('list',{
+        status: 200,
+        message: 'hello world!'
+    })
+
+});
+
 export default app;
