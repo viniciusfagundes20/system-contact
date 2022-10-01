@@ -1,12 +1,11 @@
 import { Sequelize } from 'sequelize';
-import { host, userdb, passdb, database, portdb } from '@const/app.js';
 
-const connection = new Sequelize(database, userdb, passdb, {
-  host: host,
-  port: portdb,
+const connection = new Sequelize('db_davinti', 'root', '', {
+  host: 'localhost',
+  port: 3306,
   dialect: 'mysql',
   timezone: '+00:00',
-  logging: false,
+  logging: true,
 });
 
 export { connection as default };
