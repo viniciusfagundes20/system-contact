@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title><%=title%></title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand navbar-dark bg-primary">
+            <a class="sidebar-toggle text-light mr-3">
+                <span class="navbar-toggler-icon"></span>
+            </a>
+            <a class="navbar-brand" href="#">DaVinTi</a>
+        </nav>
+
+        <div class="container">
+            <div class="content p-1">
+                <div class="d-flex">
+                    <div class="mr-auto p-2">
+                        <h4 class="display-4">Cadastrar Contato</h4>
+                    </div>
+                    <a href="/contact/list">
+                        <div class="p-2">
+                            <button class="btn btn-outline-info btn-sm">
+                                Listar
+                            </button>
+                        </div>
+                    </a>
+                </div><hr>
+                <form id="form-main">
+                    <div class="container">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label><span class="text-danger">*</span> Nome</label>
+                            <input name="nome" type="text" class="form-control" id="nome" placeholder="Nome completo">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Sua idade <span class="text-primary">Não obrigatório</span></label>
+                            <input name="idade" type="number" class="form-control" id="idade">
+                        </div>
+                    </div>
+
+                    <div id="telefones">
+                        <input type="hidden" id="qntTelefones" name="qntTelefones">
+                        <label>Telefone</label>
+                    </div>
+
+                    <div class="col-md-6 mb-3 text-right">
+                        <button id="btn-phone-add" type="button" class="btn btn-primary d-inline-block">+</button>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col">
+                            <p><span class="text-danger">* </span>Campo obrigatório</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Cadastrar</button>
+                </div>
+                </form>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+
+        <script>
+
+            let countPhones = 0;
+
+            function addFieldPhone()
+            {
+                countPhones++;
+                let element = document.createElement('div');
+
+                element.classList = 'form-row';
+                element.innerHTML =
+                    `<div class="form-group col-md-6">
+                        <input name="telefone[${countPhones}]" type="tel" class="form-control" id="telefone" maxlength="15">
+                    </div>`;
+
+                document.getElementById('telefones').appendChild(element);
+                document.getElementById('qntTelefones').value = countPhones;
+
+            }
+
+            addFieldPhone();
+
+           $('#btn-phone-add').click(event => {
+
+                addFieldPhone();
+
+           });
+
+           $('#form-main').submit(event => {
+
+            event.preventDefault();
+
+            let phones = [];
+
+            for(let i = 1; i <= countPhones; i++) {
+                phones.push($(`input[name="telefone[${i}]"]`).val());
+            }
+
+            console.log(phones);
+
+            let data = {
+                name: $('#nome').val(),
+                age: $('#idade').val(),
+                phones: JSON.stringify(phones)
+            };
+
+            console.log(data);
+
+            $.ajax({
+                type: "POST",
+                url: "/contact/register",
+                data: data,
+                dataType: "json"
+            }).done(response => {
+
+                if(response.success) {
+                    alert("Registrado com sucesso");
+                }
+                else
+                {
+                    alert("ocorreu um erro durante a operação!");
+                }
+
+                window.location.reload();
+
+            });
+
+           });
+
+        </script>
+    </body>
+</html>
